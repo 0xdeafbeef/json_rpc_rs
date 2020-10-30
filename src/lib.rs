@@ -1,17 +1,17 @@
 use reqwest::{Client as ClientR, Url};
-use serde_json::{json, Value, from_value};
+use serde_json::{from_value, json, Value};
 use tokio::time::Duration;
 pub mod error;
 pub mod params;
-use crate::error::{JsonRpcError};
+use crate::error::JsonRpcError;
 use anyhow::Error;
 use params::Params;
 use serde::Deserialize;
 pub use serde_json::Value as JsonValue;
 
-use tokio::sync::Mutex;
 use serde::de::DeserializeOwned;
 use std::sync::Arc;
+use tokio::sync::Mutex;
 
 #[derive(Clone, Debug)]
 pub struct Client {
@@ -39,7 +39,7 @@ impl Client {
     pub async fn request<M, Ret>(&self, method: M, params: Params) -> Result<Ret, Error>
     where
         M: AsRef<str>,
-          Ret: DeserializeOwned,
+        Ret: DeserializeOwned,
     {
         #[derive(Deserialize, Debug)]
         struct JsonRpcData {
@@ -69,9 +69,9 @@ impl Client {
             .json()
             .await?;
         match data.error {
-            Some(a) =>  Err(parse_error(a)?.into()),
+            Some(a) => Err(parse_error(a)?.into()),
             None => match data.result {
-                Some(a) => Ok( from_value(a)?),
+                Some(a) => Ok(from_value(a)?),
                 None => Err(Error::msg("Bad server  answer")),
             },
         }

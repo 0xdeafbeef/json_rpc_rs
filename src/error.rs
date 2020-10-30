@@ -41,7 +41,7 @@ impl JsonRpcError {
     pub fn error_reason(&self) -> JsonRpcErrorReason {
         JsonRpcErrorReason::new(self.code)
     }
-    pub fn code(&self)->i32{
+    pub fn code(&self) -> i32 {
         self.code
     }
 }
