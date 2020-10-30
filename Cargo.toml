@@ -15,3 +15,5 @@ anyhow = "1.0.33"
 thiserror = "1.0.21"
 thiserror-impl = "1.0.21"
 derive_more ="0.99.11"
+[dev-dependencies]
+tokio = { version = "0.2", features = ["full"] }
