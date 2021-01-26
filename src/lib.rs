@@ -21,6 +21,7 @@ pub struct Client {
 }
 
 impl Client {
+    #[must_use]
     pub fn new(url: &Url, timeout: Option<Duration>, connection_timeout: Option<Duration>) -> Self {
         let builder = ClientR::builder();
         let client = builder
@@ -38,7 +39,7 @@ impl Client {
     }
     pub async fn request<M, Ret>(&self, method: M, params: Params) -> Result<Ret, Error>
     where
-        M: AsRef<str>,
+        M: AsRef<str> + Send,
         Ret: DeserializeOwned,
     {
         #[derive(Deserialize, Debug)]
