@@ -6,9 +6,8 @@ use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde_json::{from_value, json, Value};
 pub use serde_json::Value as JsonValue;
-use tokio::sync::Mutex;
-use tokio::time::Duration;
-
+use std::sync::atomic::{AtomicU64,Ordering};
+use std::time::Duration;
 use params::Params;
 
 use crate::error::JsonRpcError;
@@ -20,7 +19,7 @@ pub mod params;
 pub struct Client {
     inner: ClientR,
     url: Url,
-    id: Arc<Mutex<u64>>,
+    id: Arc<AtomicU64>,
 }
 
 impl Client {
@@ -37,7 +36,7 @@ impl Client {
         Client {
             inner: client,
             url: url.clone(),
-            id: Arc::new(Mutex::new(0)),
+            id: Arc::new(AtomicU64::new(0)),
         }
     }
 
@@ -62,9 +61,7 @@ impl Client {
 
         let client = &self.inner;
         let id = {
-            let mut lock = self.id.lock().await;
-            *lock += 1;
-            *lock
+            self.id.fetch_add(1,Ordering::SeqCst)
         };
 
         let json_payload = json!({
