@@ -9,7 +9,7 @@ Json rpc lib based on reqwest
 keywords = ["jsonrpc", "web", "tokio", "async", "json"]
 documentation = "https://docs.rs/"
 categories = ["asynchronous", "web-programming::http-client"]
-license = "Apache-2.0 or MIT"
+license = "Apache-2.0 OR MIT"
 repository = "https://github.com/0xdeafbeef/json_rpc_rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
