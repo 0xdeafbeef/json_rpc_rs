@@ -1,17 +1,20 @@
+use std::sync::Arc;
+
+use anyhow::Error;
 use reqwest::{Client as ClientR, Url};
+use serde::de::DeserializeOwned;
+use serde::Deserialize;
 use serde_json::{from_value, json, Value};
+pub use serde_json::Value as JsonValue;
+use tokio::sync::Mutex;
 use tokio::time::Duration;
+
+use params::Params;
+
+use crate::error::JsonRpcError;
+
 pub mod error;
 pub mod params;
-use crate::error::JsonRpcError;
-use anyhow::Error;
-use params::Params;
-use serde::Deserialize;
-pub use serde_json::Value as JsonValue;
-
-use serde::de::DeserializeOwned;
-use std::sync::Arc;
-use tokio::sync::Mutex;
 
 #[derive(Clone, Debug)]
 pub struct Client {
@@ -37,10 +40,19 @@ impl Client {
             id: Arc::new(Mutex::new(0)),
         }
     }
+
+    ///Creates request
+    /// ```
+    /// {
+    ///     "method": M,
+    ///      "id": id,
+    ///      "params": Params
+    /// }
+    /// ```
     pub async fn request<M, Ret>(&self, method: M, params: Params) -> Result<Ret, Error>
-    where
-        M: AsRef<str> + Send,
-        Ret: DeserializeOwned,
+        where
+            M: AsRef<str> + Send,
+            Ret: DeserializeOwned,
     {
         #[derive(Deserialize, Debug)]
         struct JsonRpcData {
@@ -79,26 +91,19 @@ impl Client {
     }
 }
 
-fn parse_error(valie: Value) -> Result<JsonRpcError, Error> {
+
+fn parse_error(value: Value) -> Result<JsonRpcError, Error> {
     #[derive(Deserialize)]
     struct ErrorObj {
         code: i32,
         message: String,
         data: Option<String>,
     }
-    let error_obj: ErrorObj = serde_json::from_value(valie)?;
+    let error_obj: ErrorObj = serde_json::from_value(value)?;
 
     Ok(JsonRpcError {
         code: error_obj.code,
         data: error_obj.data,
         message: error_obj.message,
     })
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
 }

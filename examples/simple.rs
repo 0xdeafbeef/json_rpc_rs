@@ -1,6 +1,6 @@
 use reqwest::Url;
-use json_rpc::params::Params;
-use json_rpc::JsonValue;
+use tiny_jsonrpc::params::Params;
+use tiny_jsonrpc::JsonValue;
 use serde_json::Value;
 
 #[tokio::main]
