@@ -1,8 +1,8 @@
-use crate::error::ParamsError as Error;
-use crate::JsonValue;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use serde_json::{from_value, Value};
+use serde_json::{from_value, Value as JsonValue};
+
+use crate::error::ParamsError as Error;
 
 /// Request parameters
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -27,11 +27,11 @@ impl Params {
         from_value(value).map_err(|e| Error::InvalidParams(format!("Invalid params: {}.", e)))
     }
 
-    pub fn to_value(&self) -> Value {
+    pub fn to_value(&self) -> JsonValue {
         match self {
             Params::None => JsonValue::Null,
-            Params::Array(a) => Value::Array(a.clone()),
-            Params::Map(a) => Value::Object(a.clone()),
+            Params::Array(a) => JsonValue::Array(a.clone()),
+            Params::Map(a) => JsonValue::Object(a.clone()),
         }
     }
 
@@ -59,9 +59,9 @@ impl From<Params> for JsonValue {
 
 #[cfg(test)]
 mod tests {
-    use super::Params;
-    use crate::common::{Error, ErrorCode, JsonValue};
-    use serde_json;
+    use crate::error::ParamsError as Error;
+    use crate::params::Params;
+    use serde_json::Value as JsonValue;
 
     #[test]
     fn params_deserialization() {

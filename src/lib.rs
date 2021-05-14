@@ -1,20 +1,27 @@
-use std::sync::Arc;
+#[cfg(feature = "client")]
+use client_imports::*;
 
-use anyhow::Error;
-use reqwest::{Client as ClientR, Url};
-use serde::de::DeserializeOwned;
-use serde::Deserialize;
-use serde_json::{from_value, json, Value};
-pub use serde_json::Value as JsonValue;
-use std::sync::atomic::{AtomicU64,Ordering};
-use std::time::Duration;
-use params::Params;
+pub use serde::Deserialize;
 
-use crate::error::JsonRpcError;
+
+#[cfg(feature = "client")]
+mod client_imports{
+    pub use crate::error::JsonRpcError;
+    pub use anyhow::Error;
+    pub use reqwest::{Client as ClientR, Url};
+    pub  use std::sync::Arc;
+    pub use serde::de::DeserializeOwned;
+    pub use serde::Deserialize;
+    pub use serde_json::{from_value, json, Value};
+    pub use std::sync::atomic::{AtomicU64,Ordering};
+    pub use std::time::Duration;
+    pub use crate::params::Params;
+}
 
 pub mod error;
 pub mod params;
 
+#[cfg(feature = "client")]
 #[derive(Clone, Debug)]
 pub struct Client {
     inner: ClientR,
@@ -22,6 +29,7 @@ pub struct Client {
     id: Arc<AtomicU64>,
 }
 
+#[cfg(feature = "client")]
 impl Client {
     #[must_use]
     pub fn new(url: &Url, timeout: Option<Duration>, connection_timeout: Option<Duration>) -> Self {
@@ -88,7 +96,7 @@ impl Client {
     }
 }
 
-
+#[cfg(feature = "client")]
 fn parse_error(value: Value) -> Result<JsonRpcError, Error> {
     #[derive(Deserialize)]
     struct ErrorObj {

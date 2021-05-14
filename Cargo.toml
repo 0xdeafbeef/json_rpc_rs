@@ -14,8 +14,7 @@ repository = "https://github.com/0xdeafbeef/json_rpc_rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = { version = "0.10", features = ["json"] }
-#tokio = { version = "0.3", features = ["sync"] }
+reqwest = { version = "*", features = ["json"], optional=true }
 serde_json = "1.0.59"
 serde = { version = "1.0.117", features = ["derive"] }
 anyhow = "1.0.33"
@@ -23,4 +22,8 @@ thiserror = "1.0.21"
 derive_more = "0.99.11"
 
 [dev-dependencies]
-tokio = { version = "0.2", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
+
+[features]
+default = ["client"]
+client = ["reqwest"]
