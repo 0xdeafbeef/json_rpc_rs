@@ -59,9 +59,10 @@ impl From<Params> for JsonValue {
 
 #[cfg(test)]
 mod tests {
-    use crate::error::ParamsError as Error;
-    use crate::params::Params;
     use serde_json::Value as JsonValue;
+
+    use crate::error::{ParamsError as Error, ParamsError};
+    use crate::params::Params;
 
     #[test]
     fn params_deserialization() {
@@ -100,18 +101,8 @@ mod tests {
         let err2 = v2.unwrap_err();
 
         // then
-        assert_eq!(err1.code, ErrorCode::InvalidParams);
-        assert_eq!(
-            err1.message,
-            "Invalid params: invalid type: boolean `true`, expected a string."
-        );
-        assert_eq!(err1.data, None);
-        assert_eq!(err2.code, ErrorCode::InvalidParams);
-        assert_eq!(
-            err2.message,
-            "Invalid params: invalid length 2, expected a tuple of size 3."
-        );
-        assert_eq!(err2.data, None);
+        assert!(matches!(err1, ParamsError::InvalidParams(_)));
+        assert!(matches!(err2, ParamsError::InvalidParams(_)));
     }
 
     #[test]

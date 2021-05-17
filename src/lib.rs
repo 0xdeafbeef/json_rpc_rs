@@ -1,21 +1,20 @@
 #[cfg(feature = "client")]
 use client_imports::*;
 
-pub use serde::Deserialize;
-
+use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "client")]
-mod client_imports{
+mod client_imports {
     pub use crate::error::JsonRpcError;
+    pub use crate::params::Params;
     pub use anyhow::Error;
     pub use reqwest::{Client as ClientR, Url};
-    pub  use std::sync::Arc;
     pub use serde::de::DeserializeOwned;
     pub use serde::Deserialize;
     pub use serde_json::{from_value, json, Value};
-    pub use std::sync::atomic::{AtomicU64,Ordering};
+    pub use std::sync::atomic::{AtomicU64, Ordering};
+    pub use std::sync::Arc;
     pub use std::time::Duration;
-    pub use crate::params::Params;
 }
 
 pub mod error;
@@ -51,15 +50,17 @@ impl Client {
     ///Creates request
     /// ```
     /// {
+    ///     "jsonrpc": "2.0",
     ///     "method": M,
-    ///      "id": id,
-    ///      "params": Params
+    ///     "id": id,
+    ///     "params": P
     /// }
     /// ```
-    pub async fn request<M, Ret>(&self, method: M, params: Params) -> Result<Ret, Error>
-        where
-            M: AsRef<str> + Send,
-            Ret: DeserializeOwned,
+    pub async fn request<M, P, Ret>(&self, method: M, params: P) -> Result<Ret, Error>
+    where
+        M: AsRef<str> + Send,
+        P: Serialize,
+        Ret: DeserializeOwned,
     {
         #[derive(Deserialize, Debug)]
         struct JsonRpcData {
@@ -68,14 +69,12 @@ impl Client {
         }
 
         let client = &self.inner;
-        let id = {
-            self.id.fetch_add(1,Ordering::SeqCst)
-        };
+        let id = { self.id.fetch_add(1, Ordering::SeqCst) };
 
         let json_payload = json!({
             "jsonrpc": 2.0,
             "method": method.as_ref(),
-            "params": params.to_value(),
+            "params": params,
             "id": id
         });
 
