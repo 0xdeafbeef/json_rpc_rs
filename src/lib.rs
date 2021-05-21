@@ -75,7 +75,7 @@ impl Client {
         let id = { self.id.fetch_add(1, Ordering::SeqCst) };
 
         let json_payload = json!({
-            "jsonrpc": 2.0,
+            "jsonrpc": "2.0",
             "method": method.as_ref(),
             "params": params,
             "id": id
