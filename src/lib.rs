@@ -1,20 +1,23 @@
+use serde::{Deserialize, Serialize};
+
+use crate::error::JsonRpcError;
+pub use anyhow::Error;
 #[cfg(feature = "client")]
 use client_imports::*;
-
-use serde::{Deserialize, Serialize};
+pub use serde::de::DeserializeOwned;
+pub use serde_json::{from_value, json, Value};
 
 #[cfg(feature = "client")]
 mod client_imports {
-    pub use crate::error::JsonRpcError;
-    pub use crate::params::Params;
-    pub use anyhow::Error;
-    pub use reqwest::{Client as ClientR, Url};
-    pub use serde::de::DeserializeOwned;
-    pub use serde::Deserialize;
-    pub use serde_json::{from_value, json, Value};
     pub use std::sync::atomic::{AtomicU64, Ordering};
     pub use std::sync::Arc;
     pub use std::time::Duration;
+
+    pub use reqwest::{Client as ClientR, Url};
+    pub use serde::Deserialize;
+
+    pub use crate::error::JsonRpcError;
+    pub use crate::params::Params;
 }
 
 pub mod error;
@@ -77,25 +80,36 @@ impl Client {
             "params": params,
             "id": id
         });
-
-        let data: JsonRpcData = client
+        let res = client
             .post(self.url.clone())
             .json(&json_payload)
             .send()
             .await?
-            .json()
+            .text()
             .await?;
-        match data.error {
-            Some(a) => Err(parse_error(a)?.into()),
-            None => match data.result {
-                Some(a) => Ok(from_value(a)?),
-                None => Err(Error::msg("Bad server  answer")),
-            },
-        }
+        parse_response(&res)
     }
 }
 
-#[cfg(feature = "client")]
+pub fn parse_response<Ret>(data: &str) -> Result<Ret, anyhow::Error>
+where
+    Ret: DeserializeOwned,
+{
+    #[derive(Deserialize, Debug)]
+    struct JsonRpcData {
+        result: Option<Value>,
+        error: Option<Value>,
+    }
+    let response: JsonRpcData = serde_json::from_str(data)?;
+    match response.error {
+        Some(a) => Err(parse_error(a)?.into()),
+        None => match response.result {
+            Some(a) => Ok(from_value(a)?),
+            None => Err(Error::msg("Bad server  answer")),
+        },
+    }
+}
+
 fn parse_error(value: Value) -> Result<JsonRpcError, Error> {
     #[derive(Deserialize)]
     struct ErrorObj {
