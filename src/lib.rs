@@ -1,11 +1,15 @@
-use serde::{Deserialize, Serialize};
-
-use crate::error::JsonRpcError;
 pub use anyhow::Error;
+pub use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
+pub use serde_json::{from_value, json, Value};
+
 #[cfg(feature = "client")]
 use client_imports::*;
-pub use serde::de::DeserializeOwned;
-pub use serde_json::{from_value, json, Value};
+pub use constants::*;
+
+use crate::error::JsonRpcError;
+
+mod constants;
 
 #[cfg(feature = "client")]
 mod client_imports {
@@ -51,7 +55,7 @@ impl Client {
     }
 
     ///Creates request
-    /// ```
+    /// ```json
     /// {
     ///     "jsonrpc": "2.0",
     ///     "method": M,
@@ -65,12 +69,6 @@ impl Client {
         P: Serialize,
         Ret: DeserializeOwned,
     {
-        #[derive(Deserialize, Debug)]
-        struct JsonRpcData {
-            result: Option<Value>,
-            error: Option<Value>,
-        }
-
         let client = &self.inner;
         let id = { self.id.fetch_add(1, Ordering::SeqCst) };
 
@@ -110,7 +108,7 @@ where
     }
 }
 
-fn parse_error(value: Value) -> Result<JsonRpcError, Error> {
+pub fn parse_error(value: Value) -> Result<JsonRpcError, Error> {
     #[derive(Deserialize)]
     struct ErrorObj {
         code: i32,

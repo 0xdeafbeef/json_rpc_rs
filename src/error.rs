@@ -1,6 +1,8 @@
 use derive_more::Display;
 use thiserror::Error;
 
+use super::constants;
+
 #[derive(Error, Debug, Display)]
 pub enum ParamsError {
     InvalidParams(String),
@@ -19,12 +21,12 @@ pub enum JsonRpcErrorReason {
 impl JsonRpcErrorReason {
     fn new(code: i32) -> Self {
         match code {
-            -32700 => Self::ParseError,
-            -32600 => Self::InvalidRequest,
-            -32601 => Self::MethodNotFound,
-            -32602 => Self::InvalidParams,
-            -32603 => Self::InternalError,
-            a => Self::ServerError(a),
+            constants::PARSE_ERROR => Self::ParseError,
+            constants::INVALID_REQUEST => Self::InvalidRequest,
+            constants::METHOD_NOT_FOUND => Self::MethodNotFound,
+            constants::INVALID_PARAMS => Self::InvalidParams,
+            constants::INTERNAL_ERROR => Self::InternalError,
+            other => Self::ServerError(other),
         }
     }
 }
