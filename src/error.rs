@@ -1,49 +1,28 @@
-use derive_more::Display;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use super::constants;
-
-#[derive(Error, Debug, Display)]
-pub enum ParamsError {
-    InvalidParams(String),
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("JSON-RPC error: {0}")]
+    JsonRpc(JsonRpcError),
+    #[error("Network error: {0}")]
+    Network(#[from] reqwest::Error),
+    #[error("Serialization error: {0}")]
+    Serialization(#[from] serde_json::Error),
+    #[error("Invalid parameters: {0}")]
+    InvalidParams(serde_json::Error),
 }
 
-#[derive(Debug, Display)]
-pub enum JsonRpcErrorReason {
-    ParseError,
-    InvalidRequest,
-    MethodNotFound,
-    InvalidParams,
-    InternalError,
-    ServerError(i32),
-}
-
-impl JsonRpcErrorReason {
-    fn new(code: i32) -> Self {
-        match code {
-            constants::PARSE_ERROR => Self::ParseError,
-            constants::INVALID_REQUEST => Self::InvalidRequest,
-            constants::METHOD_NOT_FOUND => Self::MethodNotFound,
-            constants::INVALID_PARAMS => Self::InvalidParams,
-            constants::INTERNAL_ERROR => Self::InternalError,
-            other => Self::ServerError(other),
-        }
-    }
-}
-
-#[derive(Debug, Display, Error)]
-#[display(fmt = "{} {} {:?}", code, message, data)]
+#[derive(Serialize, Clone, Debug, Deserialize, PartialEq)]
 pub struct JsonRpcError {
-    pub(crate) code: i32,
-    pub(crate) message: String,
-    pub(crate) data: Option<String>,
+    pub code: i32,
+    pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<serde_json::Value>,
 }
 
-impl JsonRpcError {
-    pub fn error_reason(&self) -> JsonRpcErrorReason {
-        JsonRpcErrorReason::new(self.code)
-    }
-    pub fn code(&self) -> i32 {
-        self.code
+impl std::fmt::Display for JsonRpcError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "JSON-RPC error {}: {}", self.code, self.message)
     }
 }
